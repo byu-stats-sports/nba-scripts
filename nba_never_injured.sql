@@ -7,6 +7,10 @@
  * For each such player it reports:
  *	{first} {last} {birthdate} {height} {weight} {position} {career games} {career minutes} {censor}
  *
+ * Note: 
+ * 	if you get errors like: "... incompatible with sql_mode=only_full_group_by"
+ * 	see: http://stackoverflow.com/questions/23921117/disable-only-full-group-by
+ *
  * Usage: 
  *	mysql -u <user> -h <host> -p <database> < nba_never_injured.sql
  */
