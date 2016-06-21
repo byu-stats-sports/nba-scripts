@@ -36,7 +36,8 @@ for key, player in groupby(players_all_injuries, lambda x: x[0]):
 query = """SELECT first, last, ht, wt, pos, 
                   COUNT(abbr) as gp, SUM(mp) as mp, censor
              FROM nbaGameInjuries
-            WHERE abbr = %s AND date BETWEEN DATE(%s) AND DATE(%s)"""
+            WHERE abbr = %s AND date > DATE(%s) AND date <= DATE(%s)"""
+print("first, last, ht, wt, pos, gp, mp, censor, first: injury_type, main_body_part, specific_body_part, second: injury_type, main_body_part, specific_body_part")
 for abbr, player in players_first_two_injuries_dates.items():
     players_first_two_injuries = connection.cursor(named_tuple=True)
     players_first_two_injuries.execute(query, 

@@ -15,7 +15,7 @@
  *	mysql -u <user> -h <host> -p <database> < nba_never_injured.sql
  */
 
-SELECT players.first, players.last, players.birthdate, players.ht, players.wt, players.pos, players.gp, players.mp, players.censor
+SELECT players.first, players.last, players.ht, players.wt, players.pos, players.gp, players.mp, players.censor
   FROM
 		--  all players
 		(SELECT first, last, abbr, birthdate, pos, ht, wt, COUNT(abbr) as gp, SUM(mp) as mp, censor

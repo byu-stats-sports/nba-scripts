@@ -29,7 +29,8 @@ injured_players.execute(query)
 query = """SELECT first, last, ht, wt, pos, 
                   COUNT(abbr) as gp, SUM(mp) as mp, censor
              FROM nbaGameInjuries
-            WHERE abbr = %s AND date < DATE(%s)"""
+            WHERE abbr = %s AND date <= DATE(%s)"""
+print("first, last, ht, wt, pos, gp, mp, censor, injury_type, main_body_part, specific_body_part")
 for (abbr, date, injury_type, main_body_part, specific_body_part) in injured_players:
     upto_first_injury = connection.cursor(named_tuple=True, buffered=True)
     upto_first_injury.execute(query, (abbr, date,))
