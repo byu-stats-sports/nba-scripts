@@ -51,7 +51,7 @@ if __name__ == "__main__":
         'Guard': 'PG',
         'Center': 'C',
         '': None
-    }    
+    }
         
     config_file = os.path.join(os.path.expanduser('~'), '.my.cnf')
     connection = mysql.connector.connect(option_files=config_file)
@@ -84,9 +84,6 @@ if __name__ == "__main__":
             # after this season and are thus right censored
             info['CENSOR'] = 'RIGHT'
        
-        if info['CENSOR'] == 'NONE':
-            print(info)
-
         for game in nba_py.player.PlayerGameLogs(player['PERSON_ID'],
                                                  season=season).info():
             date = dateutil.parser.parse(game['GAME_DATE']).date()
@@ -97,17 +94,18 @@ if __name__ == "__main__":
                                 info['HEIGHT'],
                                 info['WEIGHT'],
                                 info['BIRTHDATE'],
+                                info['POSITION'],
                                 date,
                                 game['MIN'],
                                 age_on(info['BIRTHDATE'], date),
                                 info['CENSOR']))
-  
+ 
     print("Updating database...") 
     # FIXME: what is idno??
     stmt = """REPLACE INTO test_nbaGameInjuries
                           (idno, first, last, season, team, ht, wt, birthdate,
-                           date, mp, age, censor)
-                   VALUES (0, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+                           pos, date, mp, age, censor)
+                   VALUES (0, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
     cursor.executemany(stmt, new_players)
     connection.commit()
     cursor.close()
