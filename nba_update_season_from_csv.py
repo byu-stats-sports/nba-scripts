@@ -39,9 +39,9 @@ def age_on(birthdate, date):
 
 def search(player, players):
     return next(filter(
-        lambda p: p['first'].lower() == player['first'].lower() and 
-                  p['last'].lower() == player['last'].lower() and 
-                  p['birthdate'] == player['birthdate'], 
+        lambda p: p['first'].lower() == player['first'].lower() and
+                  p['last'].lower() == player['last'].lower() and
+                  p['birthdate'] == player['birthdate'],
                   players))
 
 season_last_day = convert_to_date('04/13/2016')
@@ -58,12 +58,12 @@ cursor.execute(query)
 existing_players = cursor.fetchall()
 cursor.close()
 
-injury_games = [] 
+injury_games = []
 csv_file = sys.argv[1]
 print("Parsing {}...".format(csv_file))
 with open(csv_file, 'r') as f:
     d = csv.DictReader(f)
-  
+
     for player in d:
         try:
             player['date'] = convert_to_date(player['date'])
@@ -81,7 +81,7 @@ with open(csv_file, 'r') as f:
         except:
             player['last_day_of_injury'] = season_last_day
         player['days_out'] = injury_duration(player['date'], player['last_day_of_injury'])
-       
+
         try:
             existing_player = search(info, existing_players)
             player['censor'] = existing_player['censor']
@@ -92,17 +92,17 @@ with open(csv_file, 'r') as f:
 
         player['mp'] = None  # FIXME
 
-        # mysql-connector can't handle dynamically generated dicts (unorded keys) 
+        # mysql-connector can't handle dynamically generated dicts (unorded keys)
         injury_games.append((player['age'],
                              player['birthdate'],
                              player['censor'],
                              player['date'],
                              player['days_out'],
-                             player['first'],
+                             player['first'].lower(),
                              player['g_missed'],
                              player['ht'],
                              player['injury_type'],
-                             player['last'],
+                             player['last'].lower(),
                              player['last_day_of_injury'],
                              player['laterality'],
                              player['main_body_part'],
@@ -121,7 +121,7 @@ stmt = """REPLACE INTO test_nbaGameInjuries
                 VALUES (0, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
                         %s, %s, %s, %s, %s, %s)"""
 
-print("Updating database...") 
+print("Updating database...")
 cursor = connection.cursor(prepared=True)
 foo = """REPLACE INTO test_nbaGameInjuries
                        (idno, age, birthdate, censor, date, days_out, first,
