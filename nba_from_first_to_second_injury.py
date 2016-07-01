@@ -20,11 +20,12 @@ config_file = os.path.join(os.path.expanduser('~'), '.my.cnf')
 connection = mysql.connector.connect(option_files=config_file)
 
 players_all_injuries = connection.cursor(named_tuple=True, buffered=True)
-query = """SELECT abbr, date, injury_type, main_body_part, specific_body_part
-             FROM nbaGameInjuries
+query = """SELECT abbr, first, last, age, birthdate, date, injury_type, main_body_part, specific_body_part
+             FROM test_nbaGameInjuries
             WHERE g_missed != 0"""
 players_all_injuries.execute(query)
 
+# NOTE: assumes `abbr` is unique
 # get the first two injuries for each player
 players_first_two_injuries_dates = {}
 for key, player in groupby(players_all_injuries, lambda x: x[0]):
@@ -32,27 +33,29 @@ for key, player in groupby(players_all_injuries, lambda x: x[0]):
     if len(p) > 1:
         players_first_two_injuries_dates[key] = p[:2]
 
-# NOTE: this is making the assumption that `abbr` is unique
-query = """SELECT first, last, ht, wt, pos, 
-                  COUNT(abbr) as gp, SUM(mp) as mp, censor
-             FROM nbaGameInjuries
-            WHERE abbr = %s AND date > DATE(%s) AND date <= DATE(%s)"""
-print("first, last, ht, wt, pos, gp, mp, censor, first: injury_type, main_body_part, specific_body_part, second: injury_type, main_body_part, specific_body_part")
+query = """SELECT first, last, age, ht, wt, pos, COUNT(date) as gp, SUM(mp) as mp
+             FROM test_nbaGameInjuries
+            WHERE censor = 'NONE' AND first = %s AND last = %s AND birthdate = %s AND date > DATE(%s) AND date <= DATE(%s)"""
+print("first, last, age, ht, wt, pos, gp, mp, first: injury_type, main_body_part, specific_body_part, second: injury_type, main_body_part, specific_body_part")
+cursor = connection.cursor(prepared=True)
 for abbr, player in players_first_two_injuries_dates.items():
-    players_first_two_injuries = connection.cursor(named_tuple=True)
-    players_first_two_injuries.execute(query, 
-                                       (abbr, player[0].date, player[1].date,))
-    for p in players_first_two_injuries:
-        if p.first:
-            print("{}, {}, {}, {}, {}, {}, {}, {}, first: {}, {}, {}, second: {}, {}, {}"
-                  .format(*p,
-                          player[0].injury_type, 
-                          player[0].main_body_part, 
-                          player[0].specific_body_part,
-                          player[1].injury_type, 
-                          player[1].main_body_part, 
-                          player[1].specific_body_part))
-    players_first_two_injuries.close()
+    cursor.execute(query, (player[0].first, player[0].last, player[0].birthdate, player[0].date, player[1].date,))
+    players_first_two_injuries = cursor.fetchall()
+    for (first, last, age, ht, wt, pos, gp, mp) in players_first_two_injuries:
+        if first:
+            print(", ".join([first.decode("utf-8"),
+                             last.decode("utf-8"),
+                             age.decode("utf-8"),
+                             str(ht),
+                             str(wt),
+                             pos.decode("utf-8"),
+                             str(gp),
+                             mp.decode("utf-8")]), end = ", ")
+            print("first: {}, {}, {}, second: {}, {}, {}".format(player[0].injury_type, 
+                                                                 player[0].main_body_part, 
+                                                                 player[0].specific_body_part,
+                                                                 player[1].injury_type, 
+                                                                 player[1].main_body_part, 
+                                                                 player[1].specific_body_part))
 
-players_all_injuries.close()
 connection.close()

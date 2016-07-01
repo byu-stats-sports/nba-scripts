@@ -58,7 +58,7 @@ if __name__ == "__main__":
     cursor = connection.cursor(dictionary=True, buffered=True)
 
     query = """SELECT first, last, birthdate, ht, wt, pos, censor
-            FROM nbaGameInjuries
+            FROM test_nbaGameInjuries
             GROUP BY first, last, birthdate"""
     cursor.execute(query)
 
@@ -83,12 +83,15 @@ if __name__ == "__main__":
             # assume that rookies (players not in the db) will keep playing
             # after this season and are thus right censored
             info['CENSOR'] = 'RIGHT'
-        
+       
+        if info['CENSOR'] == 'NONE':
+            print(info)
+
         for game in nba_py.player.PlayerGameLogs(player['PERSON_ID'],
                                                  season=season).info():
             date = dateutil.parser.parse(game['GAME_DATE']).date()
-            new_players.append((info['FIRST_NAME'],
-                                info['LAST_NAME'],
+            new_players.append((info['FIRST_NAME'].lower(),
+                                info['LAST_NAME'].lower(),
                                 season_year,
                                 game['MATCHUP'].split()[0], #HACK
                                 info['HEIGHT'],
@@ -98,12 +101,13 @@ if __name__ == "__main__":
                                 game['MIN'],
                                 age_on(info['BIRTHDATE'], date),
                                 info['CENSOR']))
-   
-    # FIXME: why are there 476 players in 2016 and 79ish 2013-2015?
-    print("Updating database...")
-    stmt = """REPLACE INTO nbaGameInjuries
-                          (idno, first, last, season, team, ht, wt, birthdate, date, mp, age, censor)
-                   VALUES (0, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""" # FIXME: what is idno??
+  
+    print("Updating database...") 
+    # FIXME: what is idno??
+    stmt = """REPLACE INTO test_nbaGameInjuries
+                          (idno, first, last, season, team, ht, wt, birthdate,
+                           date, mp, age, censor)
+                   VALUES (0, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
     cursor.executemany(stmt, new_players)
     connection.commit()
     cursor.close()

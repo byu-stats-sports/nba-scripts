@@ -108,3 +108,5 @@ target/
 *.txt
 *.sqlite
 test_*
+*.out
+*.csv

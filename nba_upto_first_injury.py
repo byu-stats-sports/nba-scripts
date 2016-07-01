@@ -18,27 +18,36 @@ import os.path
 config_file = os.path.join(os.path.expanduser('~'), '.my.cnf')
 connection = mysql.connector.connect(option_files=config_file)
 
-injured_players = connection.cursor(buffered=True)
-query = """SELECT abbr, date, injury_type, main_body_part, specific_body_part
-             FROM nbaGameInjuries
+cursor = connection.cursor(buffered=True)
+query = """SELECT first, last, age, birthdate, date, injury_type, main_body_part, specific_body_part
+             FROM test_nbaGameInjuries
             WHERE g_missed != 0 
-         GROUP BY abbr"""
-injured_players.execute(query)
+         GROUP BY first, last, birthdate"""
+cursor.execute(query)
+injured_players = cursor.fetchall()
+cursor.close()
 
 # NOTE: this is making the assumption that `abbr` is unique
-query = """SELECT first, last, ht, wt, pos, 
-                  COUNT(abbr) as gp, SUM(mp) as mp, censor
-             FROM nbaGameInjuries
-            WHERE abbr = %s AND date <= DATE(%s)"""
-print("first, last, ht, wt, pos, gp, mp, censor, injury_type, main_body_part, specific_body_part")
-for (abbr, date, injury_type, main_body_part, specific_body_part) in injured_players:
-    upto_first_injury = connection.cursor(named_tuple=True, buffered=True)
-    upto_first_injury.execute(query, (abbr, date,))
-    for player in upto_first_injury:
-        if player.first:
-            print("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}"
-                  .format(*player,
-                          injury_type, main_body_part, specific_body_part))
-    upto_first_injury.close()
-
+query = """SELECT first, last, age, ht, wt, pos, COUNT(date) as gp, SUM(mp) as mp
+             FROM test_nbaGameInjuries
+            WHERE censor = 'NONE' AND first = %s AND last = %s AND birthdate = %s AND date <= DATE(%s)"""
+print("first, last, age, ht, wt, pos, gp, mp, injury_type, main_body_part, specific_body_part")
+cursor = connection.cursor(prepared=True)
+for (first, last, age, birthdate, date, injury_type, main_body_part, specific_body_part) in injured_players:
+    cursor.execute(query, (first, last, birthdate, date,))
+    upto_first_injury = cursor.fetchall()
+    for (first, last, age, ht, wt, pos, gp, mp) in upto_first_injury:
+        if first:
+            print(", ".join([first.decode("utf-8"),
+                             last.decode("utf-8"),
+                             age.decode("utf-8"),
+                             str(ht),
+                             str(wt),
+                             pos.decode("utf-8"),
+                             str(gp),
+                             mp.decode("utf-8"),
+                             injury_type,
+                             main_body_part,
+                             specific_body_part])) 
+cursor.close()
 connection.close()
