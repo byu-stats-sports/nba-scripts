@@ -26,6 +26,10 @@ def days_between(start, finish):
     return abs((finish - start).days)
 
 
+def cleanup_name(name):
+    return name.lower().replace("'","")
+
+
 def injury_duration(start, finish):
     # +1 because last_day_of_injury counts as a day...
     return days_between(start, finish) + 1
@@ -39,8 +43,8 @@ def age_on(birthdate, date):
 
 def search(player, players):
     return next(filter(
-        lambda p: p['first'].lower() == player['first'].lower() and
-                  p['last'].lower() == player['last'].lower() and
+        lambda p: cleanup_name(p['first']) == cleanup_name(player['first']) and
+                  cleanup_name(p['last']) == cleanup_name(player['last']) and
                   p['birthdate'] == player['birthdate'],
                   players))
 
@@ -65,6 +69,9 @@ with open(csv_file, 'r') as f:
     d = csv.DictReader(f)
 
     for player in d:
+        player['first'] = cleanup_name(player['first'])
+        player['last'] = cleanup_name(player['last'])
+
         try:
             player['date'] = convert_to_date(player['date'])
             player['birthdate'] = convert_to_date(player['birthdate'])
@@ -76,6 +83,7 @@ with open(csv_file, 'r') as f:
         player['ht'] = convert_to_inches(player['ht'])
         player['age'] = age_on(player['birthdate'], player['date'])
 
+        # FIXME
         try:
             player['last_day_of_injury'] = convert_to_date(player['last_day_of_injury'])
         except:

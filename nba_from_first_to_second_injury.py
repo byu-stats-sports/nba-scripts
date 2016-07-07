@@ -35,19 +35,18 @@ for key, player in groupby(players_all_injuries, lambda x: x[0]):
 
 query = """SELECT first, last, age, ht, wt, pos, COUNT(date) as gp, SUM(mp) as mp
              FROM test_nbaGameInjuries
-            WHERE censor != 'LEFT' AND first = %s AND last = %s AND birthdate = %s AND date > DATE(%s) AND date <= DATE(%s)"""
+            WHERE (censor = 'RIGHT' OR censor = 'NONE') AND first = %s AND last = %s AND birthdate = %s AND date > DATE(%s) AND date <= DATE(%s)"""
 print("first, last, age, ht, wt, pos, gp, mp, first: injury_type, main_body_part, specific_body_part, second: injury_type, main_body_part, specific_body_part")
 cursor = connection.cursor(prepared=True)
 for abbr, player in players_first_two_injuries_dates.items():
-    cursor.execute(query, (player[0].first, player[0].last, player[0].birthdate, player[0].date, player[1].date,))
+    cursor.execute(query, (player[0].first, player[0].last,
+                           player[0].birthdate, player[0].date, player[1].date,))
     players_first_two_injuries = cursor.fetchall()
     for (first, last, age, ht, wt, pos, gp, mp) in players_first_two_injuries:
         if first:
             print(first.decode("utf-8"), last.decode("utf-8"),
-                  age.decode("utf-8"), ht, wt,
-                  pos.decode("utf-8") if pos else '',
-                  gp,
-                  mp.decode("utf-8"), sep = ", ", end = ", ")
+                  age.decode("utf-8"), ht, wt, pos.decode("utf-8"), gp,
+                  mp.decode("utf-8") if mp else 0, sep = ", ", end = ", ")
             print("first: {}, {}, {}, second: {}, {}, {}".format(player[0].injury_type,
                                                                  player[0].main_body_part,
                                                                  player[0].specific_body_part,

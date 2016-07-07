@@ -27,12 +27,11 @@ cursor.execute(query)
 injured_players = cursor.fetchall()
 cursor.close()
 
-# NOTE: this is making the assumption that `abbr` is unique
 query = """SELECT first, last, age, ht, wt, pos, COUNT(date) as gp, SUM(mp) as mp
              FROM test_nbaGameInjuries
-            WHERE censor != 'LEFT' AND first = %s AND last = %s AND birthdate = %s AND date <= DATE(%s)"""
-print("first, last, age, ht, wt, pos, gp, mp, injury_type, main_body_part, specific_body_part")
+            WHERE (censor = 'RIGHT' OR censor = 'NONE') AND first = %s AND last = %s AND birthdate = %s AND date <= DATE(%s)"""
 cursor = connection.cursor(prepared=True)
+print("first, last, age, ht, wt, pos, gp, mp, injury_type, main_body_part, specific_body_part")
 for (first, last, age, birthdate, date, injury_type, main_body_part, specific_body_part) in injured_players:
     cursor.execute(query, (first, last, birthdate, date,))
     upto_first_injury = cursor.fetchall()
