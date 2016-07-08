@@ -18,29 +18,38 @@ import os.path
 config_file = os.path.join(os.path.expanduser('~'), '.my.cnf')
 connection = mysql.connector.connect(option_files=config_file)
 
-cursor = connection.cursor(buffered=True)
-query = """SELECT first, last, age, birthdate, date, injury_type, main_body_part, specific_body_part
-             FROM test_nbaGameInjuries
-            WHERE g_missed != 0
-         GROUP BY first, last, birthdate"""
-cursor.execute(query)
-injured_players = cursor.fetchall()
-cursor.close()
+# TODO: these really should be one complicated query instead of two for speed...
 
-query = """SELECT first, last, age, ht, wt, pos, COUNT(date) as gp, SUM(mp) as mp
+injured_players = connection.cursor(named_tuple=True, buffered=True)
+query = """SELECT first, last, age, ht, wt, pos,
+                  injury_type, main_body_part, specific_body_part,
+                  MIN(date) as date, birthdate
              FROM test_nbaGameInjuries
-            WHERE (censor = 'RIGHT' OR censor = 'NONE') AND first = %s AND last = %s AND birthdate = %s AND date <= DATE(%s)"""
-cursor = connection.cursor(prepared=True)
+            WHERE (censor = 'RIGHT' OR censor = 'NONE') AND g_missed != 0
+         GROUP BY first, last, birthdate
+         ORDER BY last"""
+injured_players.execute(query)
+
+query = """SELECT COUNT(date) as gp, SUM(mp) as mp
+             FROM test_nbaGameInjuries
+            WHERE first = %s
+              AND last = %s
+              AND birthdate = %s
+              AND date <= DATE(%s)"""
+upto_first_injury_player = connection.cursor(prepared=True)
 print("first, last, age, ht, wt, pos, gp, mp, injury_type, main_body_part, specific_body_part")
-for (first, last, age, birthdate, date, injury_type, main_body_part, specific_body_part) in injured_players:
-    cursor.execute(query, (first, last, birthdate, date,))
-    upto_first_injury = cursor.fetchall()
-    for (first, last, age, ht, wt, pos, gp, mp) in upto_first_injury:
-        if first:
+for player in injured_players:
+    upto_first_injury_player.execute(query,
+                   (player.first, player.last, player.birthdate, player.date,))
+
+    for (gp, mp) in upto_first_injury_player.fetchall():
+        if player.first and player.pos:
             # FIXME mp fails for 'chris' 'mccullough'
-            print(first.decode("utf-8"), last.decode("utf-8"),
-                  age.decode("utf-8"), ht, wt, pos.decode("utf-8") if pos else '',
-                  gp, mp.decode("utf-8") if mp else 0, injury_type,
-                  main_body_part, specific_body_part, sep=', ')
-cursor.close()
+            print(player.first, player.last, player.age, player.ht, player.wt,
+                  gp, mp.decode("utf-8") if mp else 0,
+                  player.injury_type, player.main_body_part, player.specific_body_part,
+                  sep=', ')
+
+injured_players.close()
+upto_first_injury_player.close()
 connection.close()

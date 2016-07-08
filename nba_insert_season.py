@@ -1,8 +1,7 @@
 from __future__ import print_function
 import datetime
 import dateutil.parser  # available on PyPi as `python-dateutil`
-import mysql.connector  # available on PyPi as `mysql-connector`
-import nba_py.league
+import mysql.connector  # available on PyPi as `mysql-connector` import nba_py.league
 import nba_py.player
 import os
 
@@ -20,7 +19,6 @@ def convert_to_inches(height):
         # sometimes height is Unknown or ''
         ht = None
     return ht
-
 
 def search(player, players):
     return next(filter(
@@ -46,7 +44,7 @@ def determine_censor(from_year, to_year, current_season_year):
         censor = 'BOTH'
     elif from_year < first_season_year and to_year < current_season_year:
         censor = 'LEFT'
-    elif from_year >= first_season_year and to_year <= current_season_year:
+    elif from_year >= first_season_year and to_year >= current_season_year:
         censor = 'RIGHT'
     elif from_year >= first_season_year and to_year < current_season_year:
         censor = 'NONE'
@@ -76,9 +74,6 @@ if __name__ == "__main__":
     new_players = []
     for player in nba_py.player.PlayerList(season=season).info():
         info = nba_py.player.PlayerSummary(player['PERSON_ID']).info()[0]
-
-        if info['ROSTERSTATUS'] == 'Inactive' or info['DLEAGUE_FLAG'] == 'Y':
-            continue
 
         info['BIRTHDATE'] = dateutil.parser.parse(info['BIRTHDATE']).date()
         info['HEIGHT'] = convert_to_inches(info['HEIGHT'])
