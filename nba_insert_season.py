@@ -39,6 +39,19 @@ def age_on(birthdate, date):
 
 
 def determine_censor(from_year, to_year, current_season_year):
+    """
+    Determine a censor for a given player.
+
+    Args:
+        from_year (int): The year the player started playing in the NBA.
+        to_year (int): The year the player ended playing in the NBA (or the
+            current year if still playing).
+        current_season_year (int): The current season year: i.e. for the
+            2015-2016 season this would be 2016.
+
+    Returns:
+        string: The censor- one of 'BOTH', 'LEFT', 'RIGHT' or 'NONE'.
+    """
     first_season_year = 2003
     if from_year < first_season_year and to_year >= current_season_year:
         censor = 'BOTH'
