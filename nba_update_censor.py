@@ -80,7 +80,7 @@ if __name__ == "__main__":
 
     print("Downloading data...")
     players = set()
-    print("censor\tfirst\tlast\tbirthdate\tcareer_start\tcareer_end\t")
+    #print("censor\tfirst\tlast\tbirthdate\tcareer_start\tcareer_end\t")
     for player in nba_py.player.PlayerList(season=season,
                                             only_current=0).info():
         info = nba_py.player.PlayerSummary(player['PERSON_ID']).info()[0]
@@ -93,10 +93,8 @@ if __name__ == "__main__":
                               cleanup_name(info['FIRST_NAME']),
                               cleanup_name(info['LAST_NAME']),
                               dateutil.parser.parse(info['BIRTHDATE']).date())
-        print(*p, info['FROM_YEAR'], info['TO_YEAR'], sep="\t")
+        #print(*p, info['FROM_YEAR'], info['TO_YEAR'], sep="\t")
         players.add(p)
-
-    sys.exit()
 
     print("Updating database...")
     stmt = """UPDATE test_nbaGameInjuries
