@@ -1,18 +1,23 @@
 """
- * nba_never_injured.sql
+ * nba_never_injured.py
  *
  * This script will perform a left join (all players - players who have been injured)
  * to determine the NBA players who have never been injured.
  *
  * For each such player it reports:
- *	{first} {last} {birthdate} {height} {weight} {position} {career games} {career minutes} {censor}
+ *	 {first} {last} {birthdate} {height} {weight} {position} {career games} {career minutes} {censor}
  *
  * Note:
- * 	if you get errors like: "... incompatible with sql_mode=only_full_group_by"
- * 	see: http://stackoverflow.com/questions/23921117/disable-only-full-group-by
+ * 	 If you get errors like: "... incompatible with sql_mode=only_full_group_by"
+ * 	 see: http://stackoverflow.com/questions/23921117/disable-only-full-group-by
+ *
+ *   This script expects a plain-text config file saved to `~/.my.cnf` with at
+ *   least: `user`, `password`, `host`, `database` defined under the `client` option
+ *   group. For more info on mysql option files see:
+ *   http://dev.mysql.com/doc/refman/5.7/en/option-files.html
  *
  * Usage:
- *	mysql -u <user> -h <host> -p <database> < nba_never_injured.sql
+ *   python nba_never_injured.py
  """
 
 from __future__ import print_function
