@@ -84,7 +84,8 @@ query = """SELECT players.first,
                            three_quarter_sprint,
                            bench_press
                       FROM test_nbaGameInjuries
-                     WHERE g_missed != 0 AND (censor = 'RIGHT' OR censor = 'NONE')
+                     WHERE g_missed != 0
+                       AND (censor = 'RIGHT' OR censor = 'NONE')
                   GROUP BY first,
                            last,
                            birthdate) injured

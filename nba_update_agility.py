@@ -96,7 +96,7 @@ if __name__ == "__main__":
             pass
         else:
             raise(e)
-
+    # FIXME: update all seasons of the player?
     # NOTE: this assumes first, last and pos are enough to uniquely identify a player
     stmt = """UPDATE test_nbaGameInjuries
                  SET bench_press = %s,
