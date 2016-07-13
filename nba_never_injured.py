@@ -30,33 +30,83 @@ import os
 config_file = os.path.join(os.path.expanduser('~'), '.my.cnf')
 connection = mysql.connector.connect(option_files=config_file)
 
-query = """SELECT players.first, players.last, players.age, players.ht, players.wt, players.pos, players.gp, players.mp
-           FROM
+query = """SELECT players.first,
+                  players.last,
+                  players.age,
+                  players.ht,
+                  players.wt,
+                  players.pos,
+                  players.gp,
+                  players.mp,
+                  players.lane_agility_time,
+                  players.modified_lane_agility_time,
+                  players.max_vertical_leap,
+                  players.standing_vertical_leap,
+                  players.three_quarter_sprint,
+                  players.bench_press
+            FROM
                    --  all players
-                   (SELECT first, last, MAX(age) as age, pos, ht, wt, COUNT(birthdate) as gp, SUM(mp) as mp, birthdate
-                       FROM test_nbaGameInjuries
-                       WHERE censor = 'RIGHT' OR censor = 'NONE'
-                       GROUP BY first, last, birthdate) players
-               LEFT JOIN  --  all players - players who have been injured = players who have never been injured
+                   (SELECT first,
+                           last,
+                           MAX(age) as age,
+                           pos,
+                           ht,
+                           wt,
+                           COUNT(birthdate) as gp,
+                           SUM(mp) as mp,
+                           birthdate,
+                           lane_agility_time,
+                           modified_lane_agility_time,
+                           max_vertical_leap,
+                           standing_vertical_leap,
+                           three_quarter_sprint,
+                           bench_press
+                      FROM test_nbaGameInjuries
+                     WHERE censor = 'RIGHT'
+                        OR censor = 'NONE'
+                  GROUP BY first,
+                           last,
+                           birthdate) players
+       --  all players - players who have been injured = players who have never been injured
+       LEFT JOIN
                    --  players who have been injured at least once
-                   (SELECT first, last, MAX(age) as age, pos, ht, wt, birthdate
-                       FROM test_nbaGameInjuries
-                       WHERE g_missed != 0 AND (censor = 'RIGHT' OR censor = 'NONE')
-                   GROUP BY first, last, birthdate) injured
-               ON players.first = injured.first AND players.last = injured.last AND players.birthdate = injured.birthdate
-           WHERE injured.first IS NULL AND injured.last IS NULL AND injured.birthdate IS NULL
-        GROUP BY players.first, players.last, players.birthdate
-           ORDER BY players.last;"""
-cursor = connection.cursor(named_tuple=True)
+                   (SELECT first,
+                           last,
+                           MAX(age) as age,
+                           pos,
+                           ht,
+                           wt,
+                           birthdate,
+                           lane_agility_time,
+                           modified_lane_agility_time,
+                           max_vertical_leap,
+                           standing_vertical_leap,
+                           three_quarter_sprint,
+                           bench_press
+                      FROM test_nbaGameInjuries
+                     WHERE g_missed != 0 AND (censor = 'RIGHT' OR censor = 'NONE')
+                  GROUP BY first,
+                           last,
+                           birthdate) injured
+              ON players.first = injured.first
+             AND players.last = injured.last
+             AND players.birthdate = injured.birthdate
+           WHERE injured.first IS NULL
+             AND injured.last IS NULL
+             AND injured.birthdate IS NULL
+        GROUP BY players.first,
+                 players.last,
+                 players.birthdate
+        ORDER BY players.last"""
+cursor = connection.cursor()
 cursor.execute(query)
 
 today = datetime.date.today()
 
-#print(*cursor.column_names, 'age', sep=', ')
-print('first, last, age, ht, wt, pos, gp, mp')
-for p in cursor:
-    #age = age_on(p.birthdate, today)
-    print(p.first, p.last, p.age, p.ht, p.wt, p.pos, p.gp, p.mp, sep=', ')
+print(*cursor.column_names, sep=', ')
+for player in cursor:
+    s = list(map(lambda p: p or '', player))
+    print(*s, sep=', ')
 
 cursor.close()
 connection.close()
