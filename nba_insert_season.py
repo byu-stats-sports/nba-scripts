@@ -74,9 +74,12 @@ if __name__ == "__main__":
         'Center-Forward': 'C',
         'Forward-Guard': 'SF',
         'Forward': 'SF',
+        'Forw': 'SF',
         'Forward-Center': 'PF',
         'Guard': 'PG',
+        'Guar': 'PG',
         'Center': 'C',
+        'Cent': 'C',
         '': None
     }
 
@@ -98,6 +101,9 @@ if __name__ == "__main__":
 
         info['CENSOR'] = determine_censor(info['FROM_YEAR'], info['TO_YEAR'], season_year)
 
+        if not info['POS']:
+            continue
+
         for game in nba_py.player.PlayerGameLogs(player['PERSON_ID'],
                                                  season=season).info():
             date = dateutil.parser.parse(game['GAME_DATE']).date()
@@ -108,7 +114,7 @@ if __name__ == "__main__":
                                 info['HEIGHT'],
                                 info['WEIGHT'],
                                 info['BIRTHDATE'],
-                                info['POSITION'],
+                                info['POS'],
                                 date,
                                 game['MIN'],
                                 age_on(info['BIRTHDATE'], date),
