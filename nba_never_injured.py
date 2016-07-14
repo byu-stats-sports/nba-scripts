@@ -21,9 +21,7 @@
  """
 
 from __future__ import print_function
-import dateutil.parser  # available on PyPi as `python-dateutil`
 import mysql.connector  # available on PyPi as `mysql-connector`
-import datetime
 import os
 
 
@@ -101,8 +99,6 @@ query = """SELECT players.first,
         ORDER BY players.last"""
 cursor = connection.cursor()
 cursor.execute(query)
-
-today = datetime.date.today()
 
 print(*cursor.column_names, sep=', ')
 for player in cursor:

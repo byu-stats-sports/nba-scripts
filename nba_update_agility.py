@@ -75,7 +75,6 @@ if __name__ == "__main__":
                  player['THREE_QUARTER_SPRINT'],
                  cleanup_name(player['FIRST_NAME']),
                  cleanup_name(player['LAST_NAME']),
-                 season.end_year,
                  player['POSITION'])
             #print(*p)
             players.add(p)
@@ -105,7 +104,9 @@ if __name__ == "__main__":
                      max_vertical_leap = %s,
                      standing_vertical_leap = %s,
                      three_quarter_sprint = %s
-               WHERE first = %s AND last = %s AND season = %s AND pos = %s"""
+               WHERE first = %s
+                 AND last = %s
+                 AND pos = %s"""
     cursor.executemany(stmt, players)
     connection.commit()
     cursor.close()

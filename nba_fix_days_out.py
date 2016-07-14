@@ -12,9 +12,10 @@ config_file = os.path.join(os.path.expanduser('~'), '.my.cnf')
 connection = mysql.connector.connect(option_files=config_file)
 
 incorrect = connection.cursor(named_tuple=True, buffered=True)
-stmt = """SELECT first, last, birthdate, date, last_day_of_injury, days_out 
-            FROM nbaGameInjuries 
+stmt = """SELECT first, last, birthdate, date, last_day_of_injury, days_out
+            FROM nbaGameInjuries
            WHERE injury_type != 'None'
+              OR injury_type IS NOT NULL
            ORDER BY last"""
 incorrect.execute(stmt)
 players = []
@@ -26,7 +27,11 @@ incorrect.close()
 
 stmt = """UPDATE nbaGameInjuries
              SET days_out = %s
-           WHERE first = %s AND last = %s AND birthdate = %s AND date = %s AND last_day_of_injury = %s"""
+           WHERE first = %s
+             AND last = %s
+             AND birthdate = %s
+             AND date = %s
+             AND last_day_of_injury = %s"""
 correct = connection.cursor(prepared=True)
 correct.executemany(stmt, players)
 connection.commit()
