@@ -17,6 +17,7 @@ import os.path
 import csv
 import sys
 import os
+from pprint import pprint
 
 
 config_file = os.path.join(os.path.expanduser('~'), '.my.cnf')
@@ -73,6 +74,8 @@ for player in injured_players:
         except AttributeError:
             mp = 0
         player['mp'] = mp
+    # print out the player each time so we can see the data as it is coming in
+    pprint(player)
 
 cursor.close()
 connection.close()
