@@ -14,42 +14,71 @@ http://dev.mysql.com/doc/refman/5.7/en/option-files.html
 from __future__ import print_function
 import mysql.connector  # available on PyPi as `mysql-connector`
 import os.path
+import csv
+import sys
+import os
+
 
 config_file = os.path.join(os.path.expanduser('~'), '.my.cnf')
 connection = mysql.connector.connect(option_files=config_file)
 
 # TODO: these really should be one complicated query instead of two for speed...
 
-injured_players = connection.cursor(named_tuple=True, buffered=True)
-query = """SELECT first, last, age, ht, wt, pos,
-                  injury_type, main_body_part, specific_body_part,
-                  MIN(date) as date, birthdate
+cursor = connection.cursor(dictionary=True, buffered=True)
+query = """SELECT first,
+                  last,
+                  age,
+                  ht,
+                  wt,
+                  pos,
+                  injury_type,
+                  main_body_part,
+                  specific_body_part,
+                  MIN(date) as date,
+                  birthdate,
+                  lane_agility_time,
+                  modified_lane_agility_time,
+                  max_vertical_leap,
+                  standing_vertical_leap,
+                  three_quarter_sprint,
+                  bench_press
              FROM test_nbaGameInjuries
-            WHERE (censor = 'RIGHT' OR censor = 'NONE') AND g_missed != 0
-         GROUP BY first, last, birthdate
+            WHERE (censor = 'RIGHT' OR censor = 'NONE')
+              AND g_missed != 0
+         GROUP BY first,
+                  last,
+                  birthdate
          ORDER BY last"""
-injured_players.execute(query)
+cursor.execute(query)
+injured_players = cursor.fetchall()
+cursor.close()
 
-query = """SELECT COUNT(date) as gp, SUM(mp) as mp
+query = """SELECT COUNT(date) as gp,
+                  SUM(mp) as mp
              FROM test_nbaGameInjuries
             WHERE first = %s
               AND last = %s
               AND birthdate = %s
               AND date <= DATE(%s)"""
-upto_first_injury_player = connection.cursor(prepared=True)
-print("first, last, age, ht, wt, pos, gp, mp, injury_type, main_body_part, specific_body_part")
+cursor = connection.cursor(prepared=True)
+
 for player in injured_players:
-    upto_first_injury_player.execute(query,
-                   (player.first, player.last, player.birthdate, player.date,))
+    cursor.execute(query, (player['first'], player['last'],
+                           player['birthdate'], player['date'],))
 
-    for (gp, mp) in upto_first_injury_player.fetchall():
-        if player.first and player.pos:
-            # FIXME mp fails for 'chris' 'mccullough'
-            print(player.first, player.last, player.age, player.ht, player.wt,
-                  gp, mp.decode("utf-8") if mp else 0,
-                  player.injury_type, player.main_body_part, player.specific_body_part,
-                  sep=', ')
+    for (gp, mp) in cursor.fetchall():
+        player['gp'] = gp
+        try:
+            mp = mp.decode("utf-8")
+        except AttributeError:
+            mp = 0
+        player['mp'] = mp
 
-injured_players.close()
-upto_first_injury_player.close()
+cursor.close()
 connection.close()
+
+filename = os.path.splitext(sys.argv[0])[0]
+with open('{}.csv'.format(filename),'w') as f:
+    writer = csv.DictWriter(f, fieldnames=injured_players[0].keys())
+    writer.writeheader()
+    writer.writerows(injured_players)

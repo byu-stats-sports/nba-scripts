@@ -100,10 +100,10 @@ query = """SELECT players.first,
 cursor = connection.cursor()
 cursor.execute(query)
 
-print(*cursor.column_names, sep=', ')
+print(*cursor.column_names, sep=',')
 for player in cursor:
     s = list(map(lambda p: p or '', player))
-    print(*s, sep=', ')
+    print(*s, sep=',')
 
 cursor.close()
 connection.close()

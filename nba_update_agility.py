@@ -74,8 +74,7 @@ if __name__ == "__main__":
                  player['STANDING_VERTICAL_LEAP'],
                  player['THREE_QUARTER_SPRINT'],
                  cleanup_name(player['FIRST_NAME']),
-                 cleanup_name(player['LAST_NAME']),
-                 player['POSITION'])
+                 cleanup_name(player['LAST_NAME']))
             #print(*p)
             players.add(p)
 
@@ -95,6 +94,7 @@ if __name__ == "__main__":
             pass
         else:
             raise(e)
+
     # FIXME: update all seasons of the player?
     # NOTE: this assumes first, last and pos are enough to uniquely identify a player
     stmt = """UPDATE test_nbaGameInjuries
@@ -105,8 +105,7 @@ if __name__ == "__main__":
                      standing_vertical_leap = %s,
                      three_quarter_sprint = %s
                WHERE first = %s
-                 AND last = %s
-                 AND pos = %s"""
+                 AND last = %s"""
     cursor.executemany(stmt, players)
     connection.commit()
     cursor.close()
