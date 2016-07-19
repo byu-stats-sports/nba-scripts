@@ -12,12 +12,11 @@ http://dev.mysql.com/doc/refman/5.7/en/option-files.html
 """
 
 from __future__ import print_function
-import mysql.connector  # available on PyPi as `mysql-connector`
-import os.path
-import csv
-import sys
-import os
 from pprint import pprint
+import csv
+import mysql.connector  # available on PyPi as `mysql-connector`
+import os
+import sys
 
 
 config_file = os.path.join(os.path.expanduser('~'), '.my.cnf')
@@ -32,9 +31,6 @@ query = """SELECT first,
                   ht,
                   wt,
                   pos,
-                  injury_type,
-                  main_body_part,
-                  specific_body_part,
                   MIN(date) as date,
                   birthdate,
                   lane_agility_time,
@@ -63,6 +59,8 @@ query = """SELECT COUNT(date) as gp,
               AND date <= DATE(%s)"""
 cursor = connection.cursor(prepared=True)
 
+# Dr. Fellingham doesn't need these keys
+blacklist_keys = ['date', 'birthdate']
 for player in injured_players:
     cursor.execute(query, (player['first'], player['last'],
                            player['birthdate'], player['date'],))
@@ -74,14 +72,21 @@ for player in injured_players:
         except AttributeError:
             mp = 0
         player['mp'] = mp
-    # print out the player each time so we can see the data as it is coming in
+    # remove blacklisted keys
+    [player.pop(key) for key in blacklist_keys]
+    # print out the player each time so we can see the data as we fetch it
     pprint(player)
 
 cursor.close()
 connection.close()
 
+# name the output file after this script's filename
 filename = os.path.splitext(sys.argv[0])[0]
+# Dr. Fellingham wants these keys last as they don't match up with the keys
+# from `nba_never_injured.py`...
+#extra_keys = ['injury_type', 'main_body_part', 'specific_body_part']
+#keys = [key for key in injured_players[0].keys() if key not in extra_keys]
 with open('{}.csv'.format(filename),'w') as f:
-    writer = csv.DictWriter(f, fieldnames=injured_players[0].keys())
+    writer = csv.DictWriter(f, fieldnames=sorted(injured_players[0].keys()))
     writer.writeheader()
     writer.writerows(injured_players)
