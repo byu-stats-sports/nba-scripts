@@ -43,6 +43,7 @@ query = """SELECT players.first,
                   players.max_vertical_leap,
                   players.standing_vertical_leap,
                   players.three_quarter_sprint,
+                  players.bench_press,
                   players.avg_dist_miles,
                   players.avg_dist_miles_off,
                   players.avg_dist_miles_def,
@@ -74,7 +75,13 @@ query = """SELECT players.first,
                            AVG(avg_speed_def) as avg_speed_def
                       FROM test_nbaGameInjuries
                      WHERE career_from_year >= '2013'
-                  GROUP BY first,
+                       AND dist_miles IS NOT NULL
+                       AND dist_miles_off IS NOT NULL
+                       AND dist_miles_def IS NOT NULL
+                       AND avg_speed IS NOT NULL
+                       AND avg_speed_off IS NOT NULL
+                       AND avg_speed_def IS NOT NULL
+                           GROUP BY first,
                            last,
                            birthdate) players
        --  all players - players who have been injured = players who have never been injured
@@ -86,6 +93,12 @@ query = """SELECT players.first,
                       FROM test_nbaGameInjuries
                      WHERE g_missed != 0
                        AND career_from_year >= '2013'
+                       AND dist_miles IS NOT NULL
+                       AND dist_miles_off IS NOT NULL
+                       AND dist_miles_def IS NOT NULL
+                       AND avg_speed IS NOT NULL
+                       AND avg_speed_off IS NOT NULL
+                       AND avg_speed_def IS NOT NULL
                   GROUP BY first,
                            last,
                            birthdate) injured
