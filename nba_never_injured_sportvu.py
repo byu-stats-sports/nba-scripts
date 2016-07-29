@@ -1,4 +1,4 @@
-"""nba_never_injured.py
+"""nba_never_injured_sportvu.py
 
 This script will perform a left join (all players - players who have been injured)
 to determine the NBA players who have never been injured.
@@ -43,7 +43,13 @@ query = """SELECT players.first,
                   players.max_vertical_leap,
                   players.standing_vertical_leap,
                   players.three_quarter_sprint,
-                  players.bench_press
+                  players.bench_press,
+                  players.avg_dist_miles,
+                  players.avg_dist_miles_off,
+                  players.avg_dist_miles_def,
+                  players.avg_speed,
+                  players.avg_speed_off,
+                  players.avg_speed_def
             FROM
                    --  all players
                    (SELECT first,
@@ -60,11 +66,22 @@ query = """SELECT players.first,
                            max_vertical_leap,
                            standing_vertical_leap,
                            three_quarter_sprint,
-                           bench_press
+                           bench_press,
+                           AVG(dist_miles) as avg_dist_miles,
+                           AVG(dist_miles_off) as avg_dist_miles_off,
+                           AVG(dist_miles_def) as avg_dist_miles_def,
+                           AVG(avg_speed) as avg_speed,
+                           AVG(avg_speed_off) as avg_speed_off,
+                           AVG(avg_speed_def) as avg_speed_def
                       FROM test_nbaGameInjuries
-                     WHERE censor = 'RIGHT'
-                        OR censor = 'NONE'
-                  GROUP BY first,
+                     WHERE career_from_year >= '2013'
+                       AND dist_miles IS NOT NULL
+                       AND dist_miles_off IS NOT NULL
+                       AND dist_miles_def IS NOT NULL
+                       AND avg_speed IS NOT NULL
+                       AND avg_speed_off IS NOT NULL
+                       AND avg_speed_def IS NOT NULL
+                           GROUP BY first,
                            last,
                            birthdate) players
        --  all players - players who have been injured = players who have never been injured
@@ -75,7 +92,13 @@ query = """SELECT players.first,
                            birthdate
                       FROM test_nbaGameInjuries
                      WHERE g_missed != 0
-                       AND (censor = 'RIGHT' OR censor = 'NONE')
+                       AND career_from_year >= '2013'
+                       AND dist_miles IS NOT NULL
+                       AND dist_miles_off IS NOT NULL
+                       AND dist_miles_def IS NOT NULL
+                       AND avg_speed IS NOT NULL
+                       AND avg_speed_off IS NOT NULL
+                       AND avg_speed_def IS NOT NULL
                   GROUP BY first,
                            last,
                            birthdate) injured
@@ -95,11 +118,11 @@ players = cursor.fetchall()
 cursor.close()
 connection.close()
 
-#pprint(players)
+pprint(players)
 
 # name the output file after this script's filename
 filename = os.path.splitext(sys.argv[0])[0]
-with open('{}.new.csv'.format(filename),'w') as f:
+with open('{}.csv'.format(filename),'w') as f:
     writer = csv.DictWriter(f, fieldnames=sorted(players[0].keys()))
     writer.writeheader()
     writer.writerows(players)
