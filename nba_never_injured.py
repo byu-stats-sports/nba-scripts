@@ -23,7 +23,7 @@
 from __future__ import print_function
 import mysql.connector  # available on PyPi as `mysql-connector`
 import os
-
+from pprint import pprint
 
 config_file = os.path.join(os.path.expanduser('~'), '.my.cnf')
 connection = mysql.connector.connect(option_files=config_file)
@@ -97,13 +97,16 @@ query = """SELECT players.first,
                  players.last,
                  players.birthdate
         ORDER BY players.last"""
-cursor = connection.cursor()
-cursor.execute(query)
-
-print(*cursor.column_names, sep=',')
-for player in cursor:
-    s = list(map(lambda p: p or '', player))
-    print(*s, sep=',')
-
+cursor = connection.cursor(dictionary=True)
+players = cursor.fetchall()
 cursor.close()
 connection.close()
+
+pprint(players)
+
+# name the output file after this script's filename
+filename = os.path.splitext(sys.argv[0])[0]
+with open('{}.csv'.format(filename),'w') as f:
+    writer = csv.DictWriter(f, fieldnames=sorted(players[0].keys()))
+    writer.writeheader()
+    writer.writerows(players)
