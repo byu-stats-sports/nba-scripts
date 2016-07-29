@@ -55,21 +55,27 @@ if __name__ == "__main__":
             for player in nba_py.league.PlayerSpeedDistanceTracking(season=season,
                                                                     date_from=game_date,
                                                                     date_to=game_date).overall():
-                # print(player['PLAYER_NAME'])
                 first, last = split_and_cleanup_name(player['PLAYER_NAME'])
                 p = (player['DIST_MILES'],
+                     player['DIST_MILES_OFF'],
+                     player['DIST_MILES_DEF'],
                      player['AVG_SPEED'],
+                     player['AVG_SPEED_OFF'],
+                     player['AVG_SPEED_DEF'],
                      first,
                      last,
                      player['TEAM_ABBREVIATION'],
                      game_date)
-                print(*p)
                 players.add(p)
-    sys.exit()
+
     print("Updating database...")
     stmt = """ALTER TABLE test_nbaGameInjuries
                 ADD dist_miles decimal(6,2),
-                ADD avg_speed decimal(6,2)"""
+                ADD dist_miles_off decimal(6,2),
+                ADD dist_miles_def decimal(6,2),
+                ADD avg_speed decimal(6,2),
+                ADD avg_speed_off decimal(6,2),
+                ADD avg_speed_def decimal(6,2)"""
     cursor = connection.cursor(prepared=True)
     try:
         cursor.execute(stmt)
@@ -79,10 +85,14 @@ if __name__ == "__main__":
         else:
             raise(e)
 
-    # NOTE: this assumes first, last and date are enough to uniquely identify a player
+    # NOTE: this assumes first, last, team & date are enough to uniquely identify a player
     stmt = """UPDATE test_nbaGameInjuries
-                 SET dist_miles = %s
-                     avg_speed = %s
+                 SET dist_miles = %s,
+                     dist_miles_off = %s,
+                     dist_miles_def = %s,
+                     avg_speed = %s,
+                     avg_speed_off = %s,
+                     avg_speed_def = %s
                WHERE first = %s
                  AND last = %s
                  AND team = %s
