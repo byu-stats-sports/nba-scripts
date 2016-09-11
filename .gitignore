@@ -133,7 +133,6 @@ ENV/
 # Rope project settings
 
 #####=== Project specific ===#####
-*.txt
 *.sqlite
 test_*
 *.out

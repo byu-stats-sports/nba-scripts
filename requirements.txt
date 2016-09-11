@@ -1,0 +1,5 @@
+#nba_py
+git+https://github.com/seemethere/nba_py
+requests-cache
+mysql-connector
+python-dateutil
