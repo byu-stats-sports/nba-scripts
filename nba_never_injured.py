@@ -30,6 +30,12 @@ import sys
 config_file = os.path.join(os.path.expanduser('~'), '.my.cnf')
 connection = mysql.connector.connect(option_files=config_file)
 
+                  #  players.lane_agility_time,
+                  #  players.modified_lane_agility_time,
+                  #  players.max_vertical_leap,
+                  #  players.standing_vertical_leap,
+                  #  players.three_quarter_sprint,
+                  #  players.bench_press
 query = """SELECT players.first,
                   players.last,
                   players.age,
@@ -37,13 +43,7 @@ query = """SELECT players.first,
                   players.wt,
                   players.pos,
                   players.gp,
-                  players.mp,
-                  players.lane_agility_time,
-                  players.modified_lane_agility_time,
-                  players.max_vertical_leap,
-                  players.standing_vertical_leap,
-                  players.three_quarter_sprint,
-                  players.bench_press
+                  players.mp
             FROM
                    --  all players
                    (SELECT first,
@@ -99,7 +99,7 @@ connection.close()
 
 # name the output file after this script's filename
 filename = os.path.splitext(sys.argv[0])[0]
-with open('{}.new.csv'.format(filename),'w') as f:
+with open('{}.csv'.format(filename),'w') as f:
     writer = csv.DictWriter(f, fieldnames=sorted(players[0].keys()))
     writer.writeheader()
     writer.writerows(players)

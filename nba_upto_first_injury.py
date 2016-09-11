@@ -25,20 +25,19 @@ connection = mysql.connector.connect(option_files=config_file)
 # TODO: these really should be one complicated query instead of two for speed...
 
 cursor = connection.cursor(dictionary=True, buffered=True)
+                  #  lane_agility_time,
+                  #  modified_lane_agility_time,
+                  #  max_vertical_leap,
+                  #  standing_vertical_leap,
+                  #  three_quarter_sprint,
+                  #  bench_press
 query = """SELECT first,
                   last,
-                  age,
                   ht,
                   wt,
                   pos,
                   MIN(date) as date,
-                  birthdate,
-                  lane_agility_time,
-                  modified_lane_agility_time,
-                  max_vertical_leap,
-                  standing_vertical_leap,
-                  three_quarter_sprint,
-                  bench_press
+                  birthdate
              FROM test_nbaGameInjuries
             WHERE (censor = 'RIGHT' OR censor = 'NONE')
               AND g_missed != 0
@@ -50,7 +49,8 @@ cursor.execute(query)
 injured_players = cursor.fetchall()
 cursor.close()
 
-query = """SELECT COUNT(date) as gp,
+query = """SELECT MAX(age) as age,
+                  COUNT(date) as gp,
                   SUM(mp) as mp
              FROM test_nbaGameInjuries
             WHERE first = %s
@@ -65,7 +65,8 @@ for player in injured_players:
     cursor.execute(query, (player['first'], player['last'],
                            player['birthdate'], player['date'],))
 
-    for (gp, mp) in cursor.fetchall():
+    for (age, gp, mp) in cursor.fetchall():
+        player['age'] = age
         player['gp'] = gp
         try:
             mp = mp.decode("utf-8")
@@ -75,7 +76,7 @@ for player in injured_players:
     # remove blacklisted keys
     [player.pop(key) for key in blacklist_keys]
     # print out the player each time so we can see the data as we fetch it
-    pprint(player)
+    #  pprint(player)
 
 cursor.close()
 connection.close()
