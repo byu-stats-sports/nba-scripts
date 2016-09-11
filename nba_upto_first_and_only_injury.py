@@ -33,7 +33,7 @@ query = """SELECT first,
                   wt,
                   pos,
                   MIN(date) as date,
-                  COUNT(date) as date_count,
+                  COUNT(date) as injury_count,
                   birthdate
              FROM test_nbaGameInjuries
             WHERE (censor = 'RIGHT' OR censor = 'NONE')
@@ -41,7 +41,7 @@ query = """SELECT first,
          GROUP BY first,
                   last,
                   birthdate
-           HAVING date_count = 1
+           HAVING injury_count = 1
          ORDER BY last"""
 cursor.execute(query)
 injured_players = cursor.fetchall()
@@ -57,22 +57,18 @@ query = """SELECT COUNT(date) as gp,
 cursor = connection.cursor(prepared=True)
 
 # Dr. Fellingham doesn't need these keys
-blacklist_keys = ['date', 'birthdate', 'date_count']
+blacklist_keys = ['date', 'birthdate', 'injury_count']
 for player in injured_players:
     cursor.execute(query, (player['first'], player['last'],
                            player['birthdate'], player['date'],))
 
     for (gp, mp) in cursor.fetchall():
         player['gp'] = gp
-        try:
-            mp = mp.decode("utf-8")
-        except AttributeError:
-            mp = 0
-        player['mp'] = mp
+        player['mp'] = mp.decode('utf-8') if mp else 0
     # remove blacklisted keys
     [player.pop(key) for key in blacklist_keys]
     # print out the player each time so we can see the data as we fetch it
-    pprint(player)
+    #  pprint(player)
 
 cursor.close()
 connection.close()
@@ -83,7 +79,7 @@ filename = os.path.splitext(sys.argv[0])[0]
 # from `nba_never_injured.py`...
 #extra_keys = ['injury_type', 'main_body_part', 'specific_body_part']
 #keys = [key for key in injured_players[0].keys() if key not in extra_keys]
-with open('{}.csv'.format(filename),'w') as f:
+with open('{}.csv'.format(filename), 'w') as f:
     writer = csv.DictWriter(f, fieldnames=sorted(injured_players[0].keys()))
     writer.writeheader()
     writer.writerows(injured_players)
