@@ -37,7 +37,7 @@ query = """SELECT first,
                   birthdate
              FROM test_nbaGameInjuries
             WHERE (censor = 'RIGHT' OR censor = 'NONE')
-              AND g_missed != 0
+              AND ((injury_type IS NOT NULL AND injury_type != 'None') or g_missed > 0)
          GROUP BY first,
                   last,
                   birthdate
@@ -45,6 +45,9 @@ query = """SELECT first,
          ORDER BY last"""
 cursor.execute(query)
 injured_players = cursor.fetchall()
+#  from pprint import pprint
+#  pprint(injured_players)
+#  sys.exit()
 cursor.close()
 
 query = """SELECT COUNT(date) as gp,
@@ -74,12 +77,12 @@ cursor.close()
 connection.close()
 
 # name the output file after this script's filename
-filename = os.path.splitext(sys.argv[0])[0]
+#  filename = os.path.splitext(sys.argv[0])[0]
 # Dr. Fellingham wants these keys last as they don't match up with the keys
 # from `nba_never_injured.py`...
 #extra_keys = ['injury_type', 'main_body_part', 'specific_body_part']
 #keys = [key for key in injured_players[0].keys() if key not in extra_keys]
-with open('{}.csv'.format(filename), 'w') as f:
-    writer = csv.DictWriter(f, fieldnames=sorted(injured_players[0].keys()))
-    writer.writeheader()
-    writer.writerows(injured_players)
+#  with open('{}.csv'.format(filename), 'w') as f:
+writer = csv.DictWriter(sys.stdout, fieldnames=sorted(injured_players[0].keys()))
+writer.writeheader()
+writer.writerows(injured_players)

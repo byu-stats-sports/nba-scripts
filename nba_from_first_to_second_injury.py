@@ -23,11 +23,6 @@ config_file = os.path.join(os.path.expanduser('~'), '.my.cnf')
 connection = mysql.connector.connect(option_files=config_file)
 
 players_all_injuries = connection.cursor(dictionary=True, buffered=True)
-query = """SELECT first, 
-                  last, 
-                  birthdate
-             FROM test_nbaGameInjuries
-            WHERE g_missed != 0"""
 query = """SELECT first,
                   last,
                   date,

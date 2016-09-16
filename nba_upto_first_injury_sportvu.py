@@ -105,13 +105,10 @@ for player in injured_players:
 cursor.close()
 connection.close()
 
-# name the output file after this script's filename
-filename = os.path.splitext(sys.argv[0])[0]
 # Dr. Fellingham wants these keys last as they don't match up with the keys
 # from `nba_never_injured.py`...
 #extra_keys = ['injury_type', 'main_body_part', 'specific_body_part']
 #keys = [key for key in injured_players[0].keys() if key not in extra_keys]
-with open('{}.csv'.format(filename),'w') as f:
-    writer = csv.DictWriter(f, fieldnames=sorted(injured_players[0].keys()))
-    writer.writeheader()
-    writer.writerows(injured_players)
+writer = csv.DictWriter(sys.stdout, fieldnames=sorted(injured_players[0].keys()))
+writer.writeheader()
+writer.writerows(injured_players)

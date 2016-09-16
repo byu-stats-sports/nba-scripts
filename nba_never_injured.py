@@ -95,11 +95,6 @@ players = cursor.fetchall()
 cursor.close()
 connection.close()
 
-#pprint(players)
-
-# name the output file after this script's filename
-filename = os.path.splitext(sys.argv[0])[0]
-with open('{}.csv'.format(filename),'w') as f:
-    writer = csv.DictWriter(f, fieldnames=sorted(players[0].keys()))
-    writer.writeheader()
-    writer.writerows(players)
+writer = csv.DictWriter(sys.stdout, fieldnames=sorted(players[0].keys()))
+writer.writeheader()
+writer.writerows(players)

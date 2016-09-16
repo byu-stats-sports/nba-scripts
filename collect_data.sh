@@ -6,7 +6,10 @@ set -e
 #python3 nba_upto_first_injury.py
 # python3 nba_from_first_to_second_injury.py > nba_from_first_to_second_injury.txt
 
-python nba_never_injured.py
-python nba_upto_first_injury.py
-python nba_upto_first_and_only_injury.py
-python nba_from_first_to_second_injury.py
+datasets=("nba_never_injured" "nba_upto_first_injury" "nba_upto_first_and_only_injury" "nba_upto_second_injury")
+
+for dataset in "${datasets[@]}"
+do
+	echo "$dataset.py > $dataset.csv"
+	python "$dataset.py" > "$dataset.csv"
+done
