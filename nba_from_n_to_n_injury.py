@@ -22,6 +22,10 @@ import sys
 config_file = os.path.join(os.path.expanduser('~'), '.my.cnf')
 connection = mysql.connector.connect(option_files=config_file)
 
+injury = sys.argv[1].split('-')
+injury_start = int(injury[0])
+injury_end = int(injury[1])
+
 players_all_injuries = connection.cursor(dictionary=True, buffered=True)
 query = """SELECT first,
                   last,
@@ -33,14 +37,17 @@ query = """SELECT first,
          ORDER BY last"""
 players_all_injuries.execute(query)
 
-# get the first two injuries for each player
+# get the injuries from n-n for each player
 players_first_two_injuries_dates = {}
 for key, player in groupby(players_all_injuries, itemgetter('first',
                                                             'last', 
                                                             'birthdate')):
     p = list(player)
-    if len(p) > 1:
-        players_first_two_injuries_dates[key] = p[:2]
+    if len(p) >= (injury_start - 1):
+        # NOTE: this assumes a more "natural" 1 based indexing
+        injuries = p[(injury_start - 1):injury_end] 
+        if len(injuries) > 1:
+            players_first_two_injuries_dates[key] = injuries
 
 players_all_injuries.close()
 
@@ -83,7 +90,8 @@ connection.close()
 
 # name the output file after this script's filename
 filename = os.path.splitext(sys.argv[0])[0]
-with open('{}.csv'.format(filename), 'w') as f:
+name = filename.replace('from_n', 'from_{0}'.format(injury_start)).replace('to_n', 'to_{0}'.format(injury_end))
+with open('{}.csv'.format(name), 'w') as f:
     writer = csv.DictWriter(f, fieldnames=sorted(injured_players[0].keys()))
     writer.writeheader()
     writer.writerows(injured_players)
